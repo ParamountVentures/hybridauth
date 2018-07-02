@@ -80,6 +80,11 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
     // create a new OAuth2 client instance
     $this->api = new OAuth2Client($this->config["keys"]["id"], $this->config["keys"]["secret"], $this->endpoint, $this->compressed);
 
+    // If we have a OpenID Connect Id token, set it
+    if ($this->token("id_token")) {
+      $this->api->id_token = $this->token("id_token");
+    }
+
     // If we have an access token, set it
     if ($this->token("access_token")) {
       $this->api->access_token = $this->token("access_token");
@@ -123,12 +128,13 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
     }
 
     // check if authenticated
-    if (!$this->api->access_token) {
+    if (!$this->api->access_token && !$this->api->id_token) {
       throw new Exception("Authentication failed! {$this->providerId} returned an invalid access token.", 5);
     }
 
     // store tokens
     $this->token("access_token", $this->api->access_token);
+    $this->token("id_token", $this->api->id_token);
     $this->token("refresh_token", $this->api->refresh_token);
     $this->token("expires_in", $this->api->access_token_expires_in);
     $this->token("expires_at", $this->api->access_token_expires_at);
