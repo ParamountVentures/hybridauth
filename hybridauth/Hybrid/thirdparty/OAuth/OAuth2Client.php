@@ -17,6 +17,7 @@ class OAuth2Client
   public $client_id        = "" ;
   public $client_secret    = "" ;
   public $redirect_uri     = "" ;
+  public $id_token     = "" ;
   public $access_token     = "" ;
   public $refresh_token    = "" ;
 
@@ -53,7 +54,10 @@ class OAuth2Client
 
   public function authorizeUrl( $extras = array() )
   {
+    ///echo("000");
+///exit();
     $params = array(
+      "p" => "B2C_1_regauth",
       "client_id"     => $this->client_id,
       "redirect_uri"  => $this->redirect_uri,
       "response_type" => "code"
@@ -75,16 +79,19 @@ class OAuth2Client
       "redirect_uri"  => $this->redirect_uri,
       "code"          => $code
     );
-
-    $response = $this->request( $this->token_url, $params, $this->curl_authenticate_method );
-
+    
+    $response = $this->request( $this->token_url, $params, $this->curl_authenticate_method );      
     $response = $this->parseRequestResult( $response );
-
-    if( ! $response || ! isset( $response->access_token ) ){
+        
+    if( ! $response || ( ! isset( $response->access_token ) && ! isset( $response->id_token ) )){
       throw new Exception( "The Authorization Service has return: " . $response->error );
     }
 
     if( isset( $response->access_token  ) )  $this->access_token           = $response->access_token;
+    
+    // this needs set in AzureB2C as the identity info comes back in an Id Token
+    if( isset( $response->id_token  ) )  $this->id_token               = $response->id_token;
+
     if( isset( $response->refresh_token ) ) $this->refresh_token           = $response->refresh_token;
     if( isset( $response->expires_in    ) ) $this->access_token_expires_in = $response->expires_in;
 
@@ -203,7 +210,7 @@ class OAuth2Client
   // -- utilities
 
   private function request( $url, $params=false, $type="GET" )
-  {
+  {    
     Hybrid_Logger::info( "Enter OAuth2Client::request( $url )" );
     Hybrid_Logger::debug( "OAuth2Client::request(). dump request params: ", serialize( $params ) );
 
@@ -232,6 +239,8 @@ class OAuth2Client
     if($this->curl_proxy){
       curl_setopt( $ch, CURLOPT_PROXY        , $this->curl_proxy);
     }
+    //echo(json_encode($params));
+    //exit();
 
     if ($type == "POST") {
       curl_setopt($ch, CURLOPT_POST, 1);
@@ -275,13 +284,17 @@ class OAuth2Client
   private function parseRequestResult( $result )
   {
     if( json_decode( $result ) ) return json_decode( $result );
-
+    
     parse_str( $result, $output );
 
     $result = new StdClass();
 
-    foreach( $output as $k => $v )
+    foreach( $output as $k => $v ) {
       $result->$k = $v;
+    }
+      
+    
+     //exit();
 
     return $result;
   }
