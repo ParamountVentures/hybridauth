@@ -80,6 +80,9 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
     // create a new OAuth2 client instance
     $this->api = new OAuth2Client($this->config["keys"]["id"], $this->config["keys"]["secret"], $this->endpoint, $this->compressed);
 
+    //echo($this->api->policy);
+    //exit();
+
     // If we have a OpenID Connect Id token, set it
     if ($this->token("id_token")) {
       $this->api->id_token = $this->token("id_token");
@@ -103,8 +106,16 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
    * {@inheritdoc}
    */
   function loginBegin() {
+
+    $array = array("scope" => $this->scope);
+
+    // set the b2c policy if we have one
+    if ($this->config["keys"]["policy"] != "") {
+      $array["p"] = $this->config["keys"]["policy"];
+    }    
+
     // redirect the user to the provider authentication url
-    Hybrid_Auth::redirect($this->api->authorizeUrl(array("scope" => $this->scope)));
+    Hybrid_Auth::redirect($this->api->authorizeUrl($array));
   }
 
   /**

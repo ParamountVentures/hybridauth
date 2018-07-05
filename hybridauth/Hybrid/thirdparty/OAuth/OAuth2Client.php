@@ -54,10 +54,7 @@ class OAuth2Client
 
   public function authorizeUrl( $extras = array() )
   {
-    ///echo("000");
-///exit();
     $params = array(
-      "p" => "B2C_1_regauth",
       "client_id"     => $this->client_id,
       "redirect_uri"  => $this->redirect_uri,
       "response_type" => "code"
@@ -239,8 +236,6 @@ class OAuth2Client
     if($this->curl_proxy){
       curl_setopt( $ch, CURLOPT_PROXY        , $this->curl_proxy);
     }
-    //echo(json_encode($params));
-    //exit();
 
     if ($type == "POST") {
       curl_setopt($ch, CURLOPT_POST, 1);
