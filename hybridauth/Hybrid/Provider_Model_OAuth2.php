@@ -27,6 +27,12 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
   public $scope = "";
 
   /**
+   * Campaign Id for B2C rendering
+   * @var string
+   */
+  public $campaignId = "";
+
+  /**
    * Provider API wrapper
    * @var OAuth2Client 
    */
@@ -107,11 +113,16 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
    */
   function loginBegin() {
 
-    $array = array("scope" => $this->scope);
+    $array = array("scope" => $this->scope, "campaignId" => $this->campaignId);
 
     // set the b2c policy if we have one
     if ($this->config["keys"]["policy"] != "") {
       $array["p"] = $this->config["keys"]["policy"];
+    }
+
+    // set the b2c campaign if we have one
+    if ($this->config["keys"]["campaignId"] != "") {
+      $array["campaignId"] = $this->config["keys"]["campaignId"];
     }    
 
     // redirect the user to the provider authentication url
