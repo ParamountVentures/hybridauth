@@ -111,13 +111,18 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
   /**
    * {@inheritdoc}
    */
-  function loginBegin() {
+  function loginBegin($policy) {
 
     $array = array("scope" => $this->scope, "campaignId" => $this->campaignId);
 
-    // set the b2c policy if we have one
-    if ($this->config["keys"]["policy"] != "") {
-      $array["p"] = $this->config["keys"]["policy"];
+    if (is_null($policy)) {      
+      // set the b2c policy if we have one
+      if ($this->config["keys"]["policy_password"] != "") {
+        $array["p"] = $this->config["keys"][$policy];
+      }
+    } else {
+      // set the b2c policy if we have one
+      $array["p"] = $policy;
     }
 
     // set the b2c campaign if we have one
@@ -137,6 +142,22 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
 
     // check for errors
     if ($error) {
+
+      // check for password reset
+      if ($_REQUEST['error_description'] == "AADB2C90118") {
+        loginBegin("policy_password");
+        exit();
+      }
+
+      // cancelled sign up
+      if ($_REQUEST['error_description'] == "AADB2C90091") {
+        
+        // send to front just now
+        header('Location: /');
+        exit();
+
+      }
+
       throw new Exception("Authentication failed! {$this->providerId} returned an error: $error", 5);
     }
 
