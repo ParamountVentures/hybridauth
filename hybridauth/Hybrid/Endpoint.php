@@ -73,6 +73,13 @@ class Hybrid_Endpoint {
 				die();
 			}
 
+			// check for password change
+			if (strpos($this->request["error_description"],"changepassword") === 0) {
+				$hauth->adapter->loginWithPolicyBegin("policy_changepassword");
+				$hauth->returnToCallbackUrl();
+				die();
+			}
+
 			// cancelled sign up
 			if (strpos($this->request["error_description"],"AADB2C90091") === 0) {
 				
