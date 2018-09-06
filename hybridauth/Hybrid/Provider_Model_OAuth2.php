@@ -71,6 +71,7 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
    * Adapter initializer
    */
   function initialize() {
+
     if (!$this->config["keys"]["id"] || !$this->config["keys"]["secret"]) {
       throw new Exception("Your application id and secret are required in order to connect to {$this->providerId}.", 4);
     }
@@ -85,9 +86,6 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
 
     // create a new OAuth2 client instance
     $this->api = new OAuth2Client($this->config["keys"]["id"], $this->config["keys"]["secret"], $this->endpoint, $this->compressed);
-
-    //echo($this->api->policy);
-    //exit();
 
     // If we have a OpenID Connect Id token, set it
     if ($this->token("id_token")) {
@@ -108,21 +106,26 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
     }
   }
 
-  /**
+    /**
    * {@inheritdoc}
    */
-  function loginBegin($policy) {
+  function loginBegin() {
+    
+    $this->loginWithPolicyBegin(null);
+  }
+
+  function loginWithPolicyBegin($policy) {
 
     $array = array("scope" => $this->scope, "campaignId" => $this->campaignId);
 
     if (is_null($policy)) {      
       // set the b2c policy if we have one
-      if ($this->config["keys"]["policy_password"] != "") {
-        $array["p"] = $this->config["keys"][$policy];
+      if ($this->config["keys"]["policy"] != "") {
+        $array["p"] = $this->config["keys"]["policy"];
       }
     } else {
       // set the b2c policy if we have one
-      $array["p"] = $policy;
+      $array["p"] = $this->config["keys"][$policy];
     }
 
     // set the b2c campaign if we have one
@@ -131,33 +134,19 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
     }    
 
     // redirect the user to the provider authentication url
-    Hybrid_Auth::redirect($this->api->authorizeUrl($array));
+    Hybrid_Auth::redirect($this->api->authorizeUrl($array));    
   }
+
 
   /**
    * {@inheritdoc}
    */
   function loginFinish() {
+    
     $error = (array_key_exists('error', $_REQUEST)) ? $_REQUEST['error'] : "";
 
     // check for errors
     if ($error) {
-
-      // check for password reset
-      if ($_REQUEST['error_description'] == "AADB2C90118") {
-        loginBegin("policy_password");
-        exit();
-      }
-
-      // cancelled sign up
-      if ($_REQUEST['error_description'] == "AADB2C90091") {
-        
-        // send to front just now
-        header('Location: /');
-        exit();
-
-      }
-
       throw new Exception("Authentication failed! {$this->providerId} returned an error: $error", 5);
     }
 

@@ -33,6 +33,9 @@ class Hybrid_Endpoint {
 			}
 		}
 
+		//var_dump($_REQUEST); //### 
+		//exit();
+
 		// Setup request variable
 		$this->request = $request;
 
@@ -54,6 +57,32 @@ class Hybrid_Endpoint {
 		elseif (isset($this->request["hauth_done"]) && $this->request["hauth_done"]) {
 			$this->processAuthDone();
 		}
+		//b2c - ###
+		elseif (isset($this->request["error"]) && $this->request["error"]) {
+
+			$this->authInit(); 
+			$provider_id = "B2C";
+
+			// define:hybrid.endpoint.php step 2.
+			$hauth = Hybrid_Auth::setup($provider_id);
+
+			// check for password reset
+			if (strpos($this->request["error_description"],"AADB2C90118") === 0) {
+				$hauth->adapter->loginWithPolicyBegin("policy_password");
+				$hauth->returnToCallbackUrl();
+				die();
+			}
+
+			// cancelled sign up
+			if (strpos($this->request["error_description"],"AADB2C90091") === 0) {
+				
+				// send to front just now
+				header('Location: /');
+				exit();
+
+			}			
+		}
+		// b2c - ###
 		// Else we advertise our XRDS document, something supposed to be done from the Realm URL page
 		else {
 			$this->processOpenidRealm();
@@ -87,6 +116,8 @@ class Hybrid_Endpoint {
 	 * @return void
 	 */
 	protected function processOpenidXRDS() {
+		//echo("11");
+    //exit();
 		header("Content-Type: application/xrds+xml");
 
 		$output = str_replace("{RETURN_TO_URL}", str_replace(
