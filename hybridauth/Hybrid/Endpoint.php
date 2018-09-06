@@ -160,7 +160,11 @@ class Hybrid_Endpoint {
 		if (!Hybrid_Auth::storage()->get("hauth_session.$provider_id.hauth_endpoint")) {
 			Hybrid_Logger::error("Endpoint: hauth_endpoint parameter is not defined on hauth_start, halt login process!");
 
-			throw new Hybrid_Exception("You cannot access this page directly.");
+			// send to front just now ### added to stop the error trace showing
+			header('Location: /');
+			exit();
+			
+			//###throw new Hybrid_Exception("You cannot access this page directly.");
 		}
 
 		// define:hybrid.endpoint.php step 2.
