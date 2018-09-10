@@ -80,6 +80,13 @@ class Hybrid_Endpoint {
 				die();
 			}
 
+			// check for email change
+			if (strpos($this->request["error_description"],"changeemail") === 0) {
+				$hauth->adapter->loginWithPolicyBegin("policy_changeemail");
+				$hauth->returnToCallbackUrl();
+				die();
+			}
+
 			// cancelled sign up
 			if (strpos($this->request["error_description"],"AADB2C90091") === 0) {
 				
@@ -123,8 +130,7 @@ class Hybrid_Endpoint {
 	 * @return void
 	 */
 	protected function processOpenidXRDS() {
-		//echo("11");
-    //exit();
+		
 		header("Content-Type: application/xrds+xml");
 
 		$output = str_replace("{RETURN_TO_URL}", str_replace(

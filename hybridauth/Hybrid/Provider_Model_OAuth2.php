@@ -127,6 +127,17 @@ class Hybrid_Provider_Model_OAuth2 extends Hybrid_Provider_Model {
       // set the b2c policy if we have one
       $array["p"] = $this->config["keys"][$policy];
     }
+    
+    // only set redirect for this just now
+    if ($policy == "policy_changepassword" 
+      || $policy == "policy_changeemail"
+      || $policy == "policy_changeprofile"
+      || $policy == "policy_password") {
+        $array["redirect_uri"] = "https://" . $_SERVER['SERVER_NAME'] . "/sociallogin/social/callback/b2c.php";
+    }
+
+    //var_dump($this->config["keys"]["redirect_url"]);
+   // die();
 
     // set the b2c campaign if we have one
     if ($this->config["keys"]["campaignId"] != "") {
